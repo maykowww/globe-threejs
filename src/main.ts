@@ -1,4 +1,6 @@
 import * as T from "three";
+import gsap from 'gsap';
+
 import globeVertexShader from "./shaders/globe/vertex.glsl";
 import globeFragmentShader from "./shaders/globe/fragment.glsl";
 import atmosphereVertexShader from "./shaders/atmosphere/vertex.glsl";
@@ -16,10 +18,10 @@ import atmosphereFragmentShader from "./shaders/atmosphere/fragment.glsl";
     const renderer = new T.WebGLRenderer({
         antialias: true,
     });
-    
+
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    
+
     document.body.appendChild(renderer.domElement);
 
     const sphere = new T.Mesh(
@@ -37,8 +39,6 @@ import atmosphereFragmentShader from "./shaders/atmosphere/fragment.glsl";
 
     camera.position.z = 10;
 
-    scene.add(sphere);
-
     const atmosphere = new T.Mesh(
         new T.SphereGeometry(5, 50, 50),
         new T.ShaderMaterial({
@@ -55,10 +55,33 @@ import atmosphereFragmentShader from "./shaders/atmosphere/fragment.glsl";
 
     camera.position.z = 15;
 
+    const mouse: {
+        x: number;
+        y: number;
+    } = {
+        x: 0,
+        y: 0,
+    };
+
+    addEventListener("mousemove", (event) => {
+        mouse.x = (event.clientX / innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+    });
+
+    const group = new T.Group();
+
+    group.add(sphere);
+    scene.add(group);
+
     const animate = () => {
         requestAnimationFrame(animate);
-        sphere.rotation.y += 0.01;
         renderer.render(scene, camera);
+        sphere.rotation.y += 0.003;
+        gsap.to(group.rotation, {
+            x: -mouse.y * 0.3,
+            y: mouse.x * 0.5,
+            duration: 2,
+        })
     };
 
     animate();
